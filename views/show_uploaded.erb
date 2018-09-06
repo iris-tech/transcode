@@ -1,0 +1,12 @@
+<html>
+    <head>
+        <title>Show Image</title>
+    </head>
+    <body>
+        <h1>See Image</h1>
+        <video src="<%= @filename %>" width="480" height="270" controls />
+        <pre style="width: 100%;">
+        <%= params[:file][:tempfile].path %>
+        </pre>
+    </body>
+</html>

@@ -1,0 +1,2 @@
+ENV['GOOGLE_KEY'] = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com'
+ENV['GOOGLE_SECRET'] = 'your secret here'

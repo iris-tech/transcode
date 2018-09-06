@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <title>Video Transcoder</title>
+    <style>
+    [v-cloak] > * { display:none }
+    [v-cloak]::before { content: "loading…" }
+    </style>
+  </head>
+
+  <body>
+    <div id="app" v-cloak>
+      <v-app>
+        <v-toolbar dark color="primary">
+          <v-toolbar-title class="white--text">Video Transcoder</v-toolbar-title>
+          <v-spacer></v-spacer>
+          
+          <v-menu offset-y>
+            <v-avatar slot="activator" size="32px">
+              <img src="<%= user_image %>">
+            </v-avatar>
+            <v-list>
+              <v-list-tile>
+                <v-list-tile-content>
+                  <v-list-tile-title>
+                    <%= user_name %>
+                  </v-list-tile-title>
+                  <v-list-tile-sub-title>
+                    <%= user_email %>
+                  </v-list-tile-sub-title>
+                </v-list-tile-content>
+              </v-list-tile>
+
+              <v-divider></v-divider>
+
+              <v-list-tile>
+                <v-list-tile-title>
+                  <a href="/logout">Sign Out</a>
+                </v-list-tile-title>
+              </v-list-tile>
+            </v-list>
+          </v-menu>
+        </v-toolbar>
+
+        <v-content>
+          <v-container>
+          
+            <v-stepper ref="stepper" v-model="step" vertical>
+                <v-stepper-step step="1">Submit <small>upload a video file.</small></v-stepper-step>
+                <v-stepper-content step="1">
+                  <v-container grid-list-md>
+                    <v-form ref="form" action="/upload" method="post" enctype="multipart/form-data">
+                      <v-layout column>
+                        <v-flex>
+                          <v-btn :disabled="uploading" color="primary" @click="pickFile"><v-icon>link</v-icon>  Attach</v-btn>
+                          <span v-if="file">{{ fileName }} ({{ fileSize }}MB)</span>
+                          <input style="display: none;" id="file" ref="file" type="file" name="file" @change="onFilePicked" accept="video/mp4,video/x-m4v,video/*" required />
+                        </v-flex>
+                        <v-flex>
+                          <v-text-field :rules="[v => !!v || 'required.', v => !v.match(/[^a-zA-Z0-9_]+/g) || 'Advertiser name must in alphabet or number or underscore']" :disabled="uploading" v-model="advertiser" label="Advertiser Name" name="advertiser" box required />
+                        </v-flex>
+                        
+                        <v-flex>
+                          <v-select :disabled="uploading" v-model="quality" label="Video Quality" :items="['High', 'Mid', 'Low']" box required>
+                          </v-select>
+                          <input style="display: none;" name="quality" :value="quality" />
+                        </v-flex>
+
+                        <v-flex>
+                          <v-btn :disabled="!file || uploading" color="primary" @click="submitForm">
+                            upload
+                          </v-btn>
+                        </v-flex>
+
+                        <v-flex v-if="uploading">
+                          uploading... {{ upload_progress}}%
+                          <v-progress-linear :value="upload_progress">
+                          </v-progress-linear>
+                        </v-flex>
+                      </v-layout>
+                    </v-form>
+                  </v-container>
+                </v-stepper-content>
+                
+                <v-stepper-step step="2">Transcode</v-stepper-step>
+                <v-stepper-content step="2">
+                  transcoding... {{ transcode_progress }}%
+                  <v-progress-linear :value="transcode_progress">
+                  </v-progress-linear>
+                </v-stepper-content>
+                
+                <v-stepper-step step="3">Deploy</v-stepper-step>
+                <v-stepper-content step="3">
+                  <v-container v-if="!!output_id">
+                    <v-flex>
+                      <video :src="'/output?output_id=' + output_id" width="100%" controls>
+                      </video>
+                    </v-flex>
+                  </v-container>
+                </v-stepper-content>
+
+            </v-stepper>
+          <v-container>
+        </v-contant>
+      </v-app>
+    </div>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/vuetify"></script>
+    <script>
+      const app = new Vue({
+        el: '#app',
+        data: {
+            form_valid: false,
+            step: 1,
+            file: undefined,
+            advertiser: '',
+            quality: 'Mid',
+            uploading: false,
+            upload_progress: 0,
+            transcode_progress: 0,
+            job_id: undefined,
+            transcode_job: undefined,
+            source_id: undefined,
+            output_id: undefined,
+        },
+        computed: {
+          fileName: function() {
+            if(this.file === undefined) {
+              return ''
+            } else {
+              return this.file.name
+            }
+          },
+          fileSize: function() {
+            if(this.file === undefined) {
+              return ''
+            } else {
+              return Math.round(this.file.size / 1024 / 1024 * 10) / 10 // MB
+            }
+          }
+        },
+        methods: {
+          transcode_monitor: function() {
+            axios.get('/api/transcode_job', { params: { 'job_id': app.job_id }})
+            .then(function(res) {
+              app.transcode_job = res.data
+              app.transcode_progress = app.transcode_job.progress
+              if(app.transcode_job.status === 'complete') {
+                app.output_id = app.transcode_job.output_id
+                app.step = 3
+              } else {
+                window.setTimeout(function() { app.transcode_monitor() }, 1000)
+              }
+            })
+          },
+          submitForm: function() {
+            app.uploading = true
+
+            const params = new FormData()
+            params.append('file', this.file)
+            params.append('advertiser', this.advertiser)
+            params.append('quality', this.quality)
+            axios.post('/api/upload', params, { onUploadProgress: e => { app.upload_progress = Math.round(e.loaded / e.total * 1000) / 10 }})
+            .then(function(res) {
+              app.transcode_job = res.data.transcode_job
+              app.job_id = app.transcode_job.job_id
+              app.source_id = app.transcode_job.source_id
+              app.uploading = false
+              app.upload_progress = 0
+              app.step = 2
+              app.transcode_monitor()
+            })
+            .catch(function(err) {
+              console.log(err)
+              app.uploading = false
+              app.upload_progress = 0
+            })
+          },
+          pickFile: function() {
+            this.$refs.file.click()
+          },
+          onFilePicked (e) {
+            const files = e.target.files
+            this.file = files[0]
+            if(this.fileName !== '' && this.advertiser === '') {
+              // 広告主名にファイル名のbasenameから英数アンダースコアのみ残して入れる
+              this.advertiser = this.fileName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_]+/g, '')              
+            }
+          }
+        }
+      })
+    </script>
+  </body>
+</html>
