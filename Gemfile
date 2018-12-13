@@ -6,3 +6,6 @@ gem 'sinatra'
 gem 'rack-flash3'
 gem 'sqlite3'
 gem 'streamio-ffmpeg'
+
+gem 'pry'
+gem 'pry-byebug'

@@ -5,6 +5,7 @@ require 'streamio-ffmpeg'
 require 'json'
 require 'omniauth'
 require 'omniauth-google-oauth2'
+require 'pry'
 require_relative 'credentals'
 require_relative 'helpers/google_auth_helper'
 
