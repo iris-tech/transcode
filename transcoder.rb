@@ -1,7 +1,7 @@
 require 'streamio-ffmpeg'
 require 'sqlite3'
 require 'json'
-require 'FileUtils'
+require 'fileutils'
 
 DB = SQLite3::Database.new 'db/transcode.db'
 DB.busy_timeout(10000) # 10sec

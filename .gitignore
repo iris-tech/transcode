@@ -1,2 +1,6 @@
 /db/transcode.db
 /credentals.rb
+/tmp/*.log*
+/tmp/*.mp4
+/source/*.mp4
+/output/*.mp4
