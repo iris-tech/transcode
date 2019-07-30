@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@1.x/dist/vuetify.min.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
     <title>Video Transcoder</title>
     <style>
@@ -18,7 +18,7 @@
         <v-toolbar dark color="primary">
           <v-toolbar-title class="white--text">Video Transcoder</v-toolbar-title>
           <v-spacer></v-spacer>
-          
+
           <v-menu offset-y>
             <v-avatar slot="activator" size="32px">
               <img src="<%= user_image %>">
@@ -48,7 +48,7 @@
 
         <v-content>
           <v-container>
-          
+
             <v-stepper ref="stepper" v-model="step" vertical>
                 <v-stepper-step step="1">Submit <small>upload a video file.</small></v-stepper-step>
                 <v-stepper-content step="1">
@@ -63,7 +63,7 @@
                         <v-flex>
                           <v-text-field :rules="[v => !!v || 'required.', v => !v.match(/[^a-zA-Z0-9_]+/g) || 'Advertiser name must in alphabet or number or underscore']" :disabled="uploading" v-model="advertiser" label="Advertiser Name" name="advertiser" box required />
                         </v-flex>
-                        
+
                         <v-flex>
                           <v-select :disabled="uploading" v-model="quality" label="Video Quality" :items="['High', 'Mid', 'Low']" box required>
                           </v-select>
@@ -85,14 +85,14 @@
                     </v-form>
                   </v-container>
                 </v-stepper-content>
-                
+
                 <v-stepper-step step="2">Transcode</v-stepper-step>
                 <v-stepper-content step="2">
                   transcoding... {{ transcode_progress }}%
                   <v-progress-linear :value="transcode_progress">
                   </v-progress-linear>
                 </v-stepper-content>
-                
+
                 <v-stepper-step step="3">Deploy</v-stepper-step>
                 <v-stepper-content step="3">
                   <v-container v-if="!!output_id">
@@ -111,7 +111,7 @@
 
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://unpkg.com/vue"></script>
-    <script src="https://unpkg.com/vuetify"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@1.x/dist/vuetify.min.js"></script>
     <script>
       const app = new Vue({
         el: '#app',
@@ -190,7 +190,7 @@
             this.file = files[0]
             if(this.fileName !== '' && this.advertiser === '') {
               // 広告主名にファイル名のbasenameから英数アンダースコアのみ残して入れる
-              this.advertiser = this.fileName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_]+/g, '')              
+              this.advertiser = this.fileName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_]+/g, '')
             }
           }
         }
